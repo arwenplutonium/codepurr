@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodePurr 🐾 · your personal CodeGrade</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --midnight:#0F0A1A;--panel:#1D1430;--panel2:#251A3E;--ink:#150E26;
+  --lavender:#E6DCFF;--dim:#B4A5D8;--grape:#A855F7;--grapesoft:#7C3AED;
+  --pink:#F9A8D4;--mint:#6EE7B7;--red:#FB7185;--star:#FBBF24;--radius:18px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--midnight);color:var(--lavender);font-family:'Nunito',sans-serif;min-height:100vh;line-height:1.55;}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important;}}
+.wrap{max-width:900px;margin:0 auto;padding:26px 16px 80px;}
+header{text-align:center;margin-bottom:22px;}
+h1{font-family:'Fredoka',sans-serif;font-size:clamp(28px,6vw,38px);color:#fff;}
+h1 .paw{color:var(--grape);}
+.sub{color:var(--dim);font-size:14px;}
+.gear{position:absolute;top:18px;right:18px;background:var(--panel);border:1px solid rgba(168,85,247,.3);color:var(--dim);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px;}
+.gear:hover{color:var(--pink);}
+
+.card{background:var(--panel);border:1px solid rgba(168,85,247,.22);border-radius:var(--radius);padding:20px;margin-bottom:18px;}
+.card h2{font-family:'Fredoka',sans-serif;font-size:17px;color:var(--pink);margin-bottom:12px;}
+.row{display:flex;gap:10px;flex-wrap:wrap;}
+label{display:block;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:6px;}
+input,select,textarea{background:var(--ink);border:1.5px solid rgba(168,85,247,.35);border-radius:12px;color:var(--lavender);font-family:'Nunito';font-size:15px;padding:11px 14px;}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--grape);border-color:transparent;}
+.f-unit{flex:2;min-width:200px;}.f-sec,.f-diff{flex:1;min-width:130px;}
+.f-unit input,.f-sec select,.f-diff select{width:100%;}
+.btn{font-family:'Fredoka',sans-serif;font-weight:600;font-size:14px;border:none;border-radius:99px;padding:12px 22px;cursor:pointer;transition:transform .15s, box-shadow .15s;display:inline-flex;align-items:center;gap:8px;}
+.btn:disabled{opacity:.55;cursor:default;}
+.btn-main{background:linear-gradient(135deg,var(--grapesoft),var(--grape));color:#fff;box-shadow:0 4px 18px rgba(168,85,247,.4);}
+.btn-main:hover:not(:disabled){transform:translateY(-2px);}
+.btn-ghost{background:var(--panel2);color:var(--pink);border:1px solid var(--grapesoft);}
+.btn-mint{background:var(--mint);color:#06281c;}
+.hidden{display:none !important;}
+
+/* challenge */
+.ch-title{font-family:'Fredoka',sans-serif;font-size:20px;color:#fff;}
+.ch-meta{font-size:12px;color:var(--star);letter-spacing:1px;text-transform:uppercase;margin:2px 0 10px;}
+.ch-brief{font-size:15px;color:var(--lavender);white-space:pre-wrap;}
+details{margin-top:10px;}
+summary{cursor:pointer;color:var(--pink);font-size:14px;font-weight:700;}
+details p{margin-top:6px;color:var(--dim);font-size:14px;}
+
+/* editor */
+textarea#editor{width:100%;min-height:260px;font-family:'JetBrains Mono',monospace;font-size:14px;line-height:1.6;resize:vertical;tab-size:2;}
+.editor-bar{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;align-items:center;}
+.marks{margin-left:auto;font-family:'Fredoka';font-size:15px;color:var(--star);}
+
+/* results */
+.test{display:flex;gap:10px;align-items:flex-start;padding:9px 12px;border-radius:10px;background:var(--ink);margin-bottom:7px;font-size:14px;}
+.test .dot{font-size:15px;flex-shrink:0;}
+.test.pass .dot{color:var(--mint);}
+.test.fail .dot{color:var(--red);}
+.test .err{color:var(--red);font-size:12.5px;font-family:'JetBrains Mono';display:block;margin-top:2px;}
+.scorebar{height:12px;background:var(--ink);border-radius:99px;overflow:hidden;margin:12px 0 4px;border:1px solid rgba(168,85,247,.3);}
+.scorefill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--grapesoft),var(--mint));transition:width .6s;}
+
+/* feedback */
+.fb-marks{font-family:'Fredoka';font-size:26px;color:var(--star);}
+.fb-text{white-space:pre-wrap;font-size:14.5px;margin:10px 0;}
+pre.code{background:var(--ink);border:1px solid rgba(168,85,247,.3);border-radius:12px;padding:14px;font-family:'JetBrains Mono';font-size:13px;overflow-x:auto;white-space:pre;color:#D6F5E4;}
+
+/* cat + status */
+.cat-line{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.cat{font-size:26px;}
+.status{font-size:14px;color:var(--dim);font-style:italic;}
+.spinner{display:inline-block;width:14px;height:14px;border:2.5px solid var(--grape);border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(15,10,26,.75);backdrop-filter:blur(5px);z-index:50;display:none;align-items:center;justify-content:center;padding:18px;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--panel);border:1.5px solid var(--grapesoft);border-radius:var(--radius);max-width:430px;width:100%;padding:26px;}
+.modal h3{font-family:'Fredoka';color:var(--pink);margin-bottom:10px;}
+.modal p{font-size:13.5px;color:var(--dim);margin-bottom:12px;}
+.modal input{width:100%;}
+.modal .row{margin-top:14px;justify-content:flex-end;}
+.chip{font-size:11px;background:var(--panel2);border:1px solid rgba(249,168,212,.3);border-radius:99px;padding:4px 10px;color:var(--dim);}
+</style>
+</head>
+<body>
+<button class="gear" onclick="openSettings()" title="Settings">⚙️</button>
+<div class="wrap">
+  <header>
+    <h1>Code<span class="paw">Purr</span> 🐾</h1>
+    <p class="sub">tell me your unit → get a challenge → code → get marked & corrected</p>
+  </header>
+
+  <!-- SETUP -->
+  <div class="card">
+    <h2>🎯 What are you learning?</h2>
+    <div class="row">
+      <div class="f-sec">
+        <label for="sector">Sector</label>
+        <select id="sector">
+          <option>JavaScript</option>
+          <option>Python</option>
+          <option>HTML & CSS</option>
+          <option>SQL</option>
+        </select>
+      </div>
+      <div class="f-unit">
+        <label for="unit">Unit / topic</label>
+        <input id="unit" placeholder="e.g. callback functions, array methods, flexbox…">
+      </div>
+      <div class="f-diff">
+        <label for="diff">Difficulty</label>
+        <select id="diff">
+          <option>Beginner</option>
+          <option selected>Moringa-level</option>
+          <option>Challenge me</option>
+        </select>
+      </div>
+    </div>
+    <div class="editor-bar">
+      <button class="btn btn-main" id="genBtn" onclick="generate()">✨ Generate challenge</button>
+      <span class="status" id="genStatus"></span>
+      <span class="marks" id="xp"></span>
+    </div>
+  </div>
+
+  <!-- CHALLENGE -->
+  <div class="card hidden" id="challengeCard">
+    <div class="cat-line"><span class="cat">🐱</span><span class="status" id="catSay">here's your challenge, bestie. you've got this.</span></div>
+    <div class="ch-title" id="chTitle"></div>
+    <div class="ch-meta" id="chMeta"></div>
+    <p class="ch-brief" id="chBrief"></p>
+    <details><summary>🌙 need a hint?</summary><p id="chHint"></p></details>
+  </div>
+
+  <!-- PLAYGROUND -->
+  <div class="card hidden" id="playCard">
+    <h2>⌨️ Playground</h2>
+    <textarea id="editor" spellcheck="false"></textarea>
+    <div class="editor-bar">
+      <button class="btn btn-mint" id="runBtn" onclick="runTests()">▶ Run tests</button>
+      <button class="btn btn-ghost" id="gradeBtn" onclick="gradeMe()">🎓 Grade & correct me</button>
+      <span class="status" id="runStatus"></span>
+      <span class="marks" id="localMarks"></span>
+    </div>
+    <div id="testResults" style="margin-top:14px;"></div>
+    <div class="scorebar hidden" id="scorebar"><div class="scorefill" id="scorefill"></div></div>
+  </div>
+
+  <!-- AI FEEDBACK -->
+  <div class="card hidden" id="fbCard">
+    <div class="cat-line"><span class="cat">🐱‍🏫</span><span class="status">examiner cat has marked your work:</span></div>
+    <div class="fb-marks" id="fbMarks"></div>
+    <div class="fb-text" id="fbText"></div>
+    <details><summary>📝 show corrected solution</summary><pre class="code" id="fbCode"></pre></details>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="modal-bg" id="settingsBg">
+  <div class="modal">
+    <h3>⚙️ Settings</h3>
+    <p><b>Inside Claude.ai:</b> works instantly, no key needed (uses built-in Claude).<br><br>
+    <b>Running locally (Live Server):</b> paste your Groq API key below — the same one from StudyPixie. It's stored only in this browser.</p>
+    <label for="groqKey">Groq API key (optional, for local use)</label>
+    <input id="groqKey" type="password" placeholder="gsk_...">
+    <div class="row">
+      <span class="chip" id="modeChip"></span>
+      <button class="btn btn-ghost" onclick="closeSettings()">Close</button>
+      <button class="btn btn-main" onclick="saveSettings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------------- storage (localStorage locally, memory in preview) ---------------- */
+let mem={};
+function store(k,v){try{localStorage.setItem(k,v);}catch(e){mem[k]=v;}}
+function load(k){try{const v=localStorage.getItem(k);if(v!==null)return v;}catch(e){}return mem[k]??null;}
+
+let solved = parseInt(load("cp-solved")||"0");
+function xpLabel(){document.getElementById("xp").textContent = solved>0 ? `⭐ ${solved} solved` : "";}
+xpLabel();
+
+/* ---------------- LLM plumbing ---------------- */
+function groqKey(){return load("cp-groq")||"";}
+function modeLabel(){return groqKey()? "mode: Groq (local)" : "mode: Claude (in-app)";}
+
+async function askLLM(prompt){
+  const key = groqKey();
+  if(key){
+    const r = await fetch("https://api.groq.com/openai/v1/chat/completions",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
+      body:JSON.stringify({model:"llama-3.3-70b-versatile",messages:[{role:"user",content:prompt}],temperature:0.7})
+    });
+    if(!r.ok) throw new Error("Groq error "+r.status);
+    const d = await r.json();
+    return d.choices[0].message.content;
+  } else {
+    const r = await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1000,messages:[{role:"user",content:prompt}]})
+    });
+    if(!r.ok) throw new Error("Claude API error "+r.status+" (running locally? add a Groq key in ⚙️ settings)");
+    const d = await r.json();
+    return d.content.map(b=>b.type==="text"?b.text:"").join("");
+  }
+}
+function parseJSON(text){
+  const clean = text.replace(/```json|```/g,"").trim();
+  const start = clean.indexOf("{"), end = clean.lastIndexOf("}");
+  return JSON.parse(clean.slice(start,end+1));
+}
+
+/* ---------------- generate challenge ---------------- */
+let challenge=null, lastResults=null;
+
+async function generate(){
+  const unit = document.getElementById("unit").value.trim();
+  if(!unit){document.getElementById("genStatus").textContent="type a unit first! e.g. callback functions";return;}
+  const sector = document.getElementById("sector").value;
+  const diff = document.getElementById("diff").value;
+  const btn=document.getElementById("genBtn");
+  btn.disabled=true;
+  document.getElementById("genStatus").innerHTML='<span class="spinner"></span> cooking a challenge…';
+  document.getElementById("fbCard").classList.add("hidden");
+  try{
+    const jsRunnable = sector==="JavaScript";
+    const prompt = `You are a coding tutor generating ONE practice exercise.
+Sector: ${sector}. Unit: ${unit}. Difficulty: ${diff} (student at a coding bootcamp, month 1-2).
+Respond ONLY with JSON, no markdown fences, no preamble:
+{
+ "title": "short fun title",
+ "brief": "clear task description, 2-5 sentences, state exactly what function(s) to write with names and expected behavior",
+ "hint": "one gentle hint",
+ "starterCode": "starter code with the empty function signature(s) and a comment where to work",
+ "tests": [ {"name":"plain-english test name","code":"expect(fnCall).toBe(expected)"} ]
+}
+Rules for tests: ${jsRunnable ? "5-7 tests. Each test 'code' must be a single synchronous JavaScript expression using expect(...).toBe(...) or expect(...).toEqual(...) that calls the student's function(s). If the unit involves callbacks, design functions where callbacks are invoked synchronously so tests still work (e.g. expect(applyTwice(x=>x+1,3)).toBe(5))." : "Provide 3-5 tests as descriptions only in 'name', and set every 'code' to an empty string, since this language cannot run in the browser; grading will be done by AI review."}
+starterCode must be plain ${sector} code as a JSON string with \\n newlines.`;
+    const raw = await askLLM(prompt);
+    challenge = parseJSON(raw);
+    challenge.sector=sector; challenge.unit=unit; challenge.diff=diff;
+    // render
+    document.getElementById("chTitle").textContent=challenge.title;
+    document.getElementById("chMeta").textContent=`${sector} · ${unit} · ${diff}`;
+    document.getElementById("chBrief").textContent=challenge.brief;
+    document.getElementById("chHint").textContent=challenge.hint||"no hint this time — trust yourself!";
+    document.getElementById("editor").value=challenge.starterCode||"";
+    document.getElementById("challengeCard").classList.remove("hidden");
+    document.getElementById("playCard").classList.remove("hidden");
+    document.getElementById("testResults").innerHTML="";
+    document.getElementById("localMarks").textContent="";
+    document.getElementById("scorebar").classList.add("hidden");
+    document.getElementById("runBtn").style.display = sector==="JavaScript" ? "" : "none";
+    document.getElementById("genStatus").textContent="";
+    document.getElementById("catSay").textContent = pick(["fresh challenge, hot out the oven 🍞","you've got this, bestie 💜","mrrp! read it twice before you type ✨","one micro-step at a time, remember?"]);
+  }catch(e){
+    document.getElementById("genStatus").textContent="😿 "+e.message;
+  }
+  btn.disabled=false;
+}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+
+/* ---------------- run tests (JS, sandboxed iframe) ---------------- */
+function runTests(){
+  if(!challenge) return;
+  const code = document.getElementById("editor").value;
+  const status=document.getElementById("runStatus");
+  status.innerHTML='<span class="spinner"></span> running…';
+  const tests = challenge.tests||[];
+  const iframe = document.createElement("iframe");
+  iframe.style.display="none";
+  iframe.setAttribute("sandbox","allow-scripts");
+  const harness = `
+<scr`+`ipt>
+function expect(v){return{
+ toBe(e){ if(v!==e) throw new Error("expected "+JSON.stringify(e)+" but got "+JSON.stringify(v)); },
+ toEqual(e){ if(JSON.stringify(v)!==JSON.stringify(e)) throw new Error("expected "+JSON.stringify(e)+" but got "+JSON.stringify(v)); }
+};}
+let fatal=null;
+try{ ${code}\n }catch(e){ fatal=e.message; }
+const tests=${JSON.stringify(tests.map(t=>({name:t.name,code:t.code})))};
+const results=[];
+if(fatal){ parent.postMessage({cp:true,type:"fatal",msg:fatal},"*"); }
+else{
+ for(const t of tests){
+   try{ eval(t.code); results.push({name:t.name,pass:true}); }
+   catch(e){ results.push({name:t.name,pass:false,err:e.message}); }
+ }
+ parent.postMessage({cp:true,type:"results",results},"*");
+}
+</scr`+`ipt>`;
+  let done=false;
+  const timer=setTimeout(()=>{ if(!done){done=true;iframe.remove();status.textContent="";showFatal("timed out — infinite loop somewhere? 🌀");} },3000);
+  function handler(ev){
+    if(!ev.data||!ev.data.cp) return;
+    done=true;clearTimeout(timer);window.removeEventListener("message",handler);iframe.remove();
+    status.textContent="";
+    if(ev.data.type==="fatal"){ showFatal(ev.data.msg); }
+    else{ showResults(ev.data.results); }
+  }
+  window.addEventListener("message",handler);
+  iframe.srcdoc=harness;
+  document.body.appendChild(iframe);
+}
+function showFatal(msg){
+  lastResults={fatal:msg};
+  document.getElementById("testResults").innerHTML =
+    `<div class="test fail"><span class="dot">💥</span><span>Your code crashed before tests ran<span class="err">${escapeHtml(msg)}</span></span></div>`;
+  document.getElementById("localMarks").textContent="0 marks";
+  document.getElementById("scorebar").classList.add("hidden");
+}
+function showResults(results){
+  lastResults=results;
+  const box=document.getElementById("testResults");
+  box.innerHTML="";
+  let pass=0;
+  results.forEach(r=>{
+    if(r.pass)pass++;
+    const d=document.createElement("div");
+    d.className="test "+(r.pass?"pass":"fail");
+    d.innerHTML=`<span class="dot">${r.pass?"✅":"❌"}</span><span>${escapeHtml(r.name)}${r.pass?"":`<span class="err">${escapeHtml(r.err||"")}</span>`}</span>`;
+    box.appendChild(d);
+  });
+  const pct=results.length?Math.round(pass/results.length*100):0;
+  document.getElementById("localMarks").textContent=`${pass}/${results.length} · ${pct}%`;
+  document.getElementById("scorebar").classList.remove("hidden");
+  document.getElementById("scorefill").style.width=pct+"%";
+  document.getElementById("catSay").textContent = pct===100 ? pick(["FULL MARKS?? screaming 😭💜","perfect score! CodeGrade could never","21/21 energy. proud purrs."]) : pct>=50 ? "so close! read the red ones carefully 🔍" : "okay okay, debugging arc. check the first failing test 💜";
+  if(pct===100){ solved++; store("cp-solved",String(solved)); xpLabel(); }
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+/* ---------------- AI grading ---------------- */
+async function gradeMe(){
+  if(!challenge) return;
+  const btn=document.getElementById("gradeBtn");
+  btn.disabled=true;
+  document.getElementById("runStatus").innerHTML='<span class="spinner"></span> examiner cat is marking…';
+  try{
+    const code=document.getElementById("editor").value;
+    const resSummary = lastResults ? JSON.stringify(lastResults) : "tests not run";
+    const prompt=`You are a kind but honest coding examiner (like CodeGrade) for a bootcamp student learning ${challenge.sector}, unit: ${challenge.unit}.
+Challenge: ${challenge.brief}
+Student's code:
+${code}
+Local test results: ${resSummary}
+Respond ONLY with JSON, no markdown fences:
+{"marks": <0-10 integer>, "feedback":"2-6 sentences: what's right, what's wrong, and one concept tip about ${challenge.unit}. Encouraging but honest.", "correctedCode":"a clean correct solution as a string with \\n newlines"}`;
+    const raw=await askLLM(prompt);
+    const g=parseJSON(raw);
+    document.getElementById("fbMarks").textContent=`${g.marks}/10`;
+    document.getElementById("fbText").textContent=g.feedback;
+    document.getElementById("fbCode").textContent=g.correctedCode;
+    document.getElementById("fbCard").classList.remove("hidden");
+    document.getElementById("runStatus").textContent="";
+    document.getElementById("fbCard").scrollIntoView({behavior:"smooth"});
+  }catch(e){
+    document.getElementById("runStatus").textContent="😿 "+e.message;
+  }
+  btn.disabled=false;
+}
+
+/* ---------------- settings ---------------- */
+function openSettings(){
+  document.getElementById("groqKey").value=groqKey();
+  document.getElementById("modeChip").textContent=modeLabel();
+  document.getElementById("settingsBg").classList.add("open");
+}
+function closeSettings(){document.getElementById("settingsBg").classList.remove("open");}
+function saveSettings(){
+  store("cp-groq",document.getElementById("groqKey").value.trim());
+  document.getElementById("modeChip").textContent=modeLabel();
+  closeSettings();
+}
+document.getElementById("settingsBg").addEventListener("click",e=>{if(e.target.id==="settingsBg")closeSettings();});
+
+/* tab key inserts spaces in editor */
+document.getElementById("editor").addEventListener("keydown",function(e){
+  if(e.key==="Tab"){e.preventDefault();
+    const s=this.selectionStart, en=this.selectionEnd;
+    this.value=this.value.slice(0,s)+"  "+this.value.slice(en);
+    this.selectionStart=this.selectionEnd=s+2;
+  }
+});
+</script>
+</body>
+</html>
